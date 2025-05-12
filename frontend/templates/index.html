@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | FinFlow</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <nav>
+            <h1 id="title1">FinFlow</h1>
+        </nav>
+        <nav class="sidebar">
+            <a href="{{ url_for('index') }}">🏠 Dashboard</a>
+            <a href="{{ url_for('analytics') }}">📊 Analytics</a>   
+            <a href="{{ url_for('all_transactions') }}">📜 View All Transactions</a>
+            <a href="{{ url_for('logout') }}">🚪 Logout</a>
+            <div class="user-greeting">
+                👋 Welcome, <strong>{{ first_name }}</strong>
+            </div>
+        </nav>        
+    </header>
+
+    <main>
+        <div class="container">
+            <!-- Summary Section -->
+            <section class="summary-section">
+                <div class="summary-card">
+                    <h2>Total Income</h2>
+                    <p>₹{{ total_income }}</p>
+                </div>
+                <div class="summary-card">
+                    <h2>Total Expenses</h2>
+                    <p>₹{{ total_expenses }}</p>
+                </div>
+                <div class="summary-card">
+                    <h2>Net Balance</h2>
+                    <p>₹{{ net_balance }}</p>
+                </div>
+            </section>
+
+            <!-- Recent Transactions Section -->
+            <a href="{{ url_for('all_transactions') }}" class="view-all-button">View All Transactions</a>
+
+            <section class="transactions">
+                <h2>Recent Transactions</h2>
+                <ul>
+                    {% for transaction in transactions %}
+                        <li>
+                            <p>{{ transaction[2] }}: ₹{{ transaction[3] }} ({{ transaction[4] }})</p>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+
+            <!-- Add Transaction Section -->
+            <section class="transaction-form">
+                <h2>Add Transaction</h2>
+                <form action="{{ url_for('add_transaction') }}" method="POST">
+                    <input type="text" name="description" placeholder="Description" required>
+                    <input type="number" name="amount" placeholder="Amount" required>
+
+                    <label for="category">Type:</label>
+                    <select id="category" name="category" onchange="toggleSubcategories()" required>
+                        <option value="">-- Select --</option>
+                        <option value="Income">Income</option>
+                        <option value="Expense">Expense</option>
+                    </select>
+
+                    <div id="subcategory-wrapper" style="display: none;">
+                        <label for="subcategory">Subcategory:</label>
+                        <select name="subcategory" id="subcategory">
+                            <option value="Food">Food</option>
+                            <option value="Travel">Travel</option>
+                            <option value="Staying">Staying</option>
+                            <option value="Shopping">Shopping</option>
+                            <option value="Bills">Bills</option>
+                            <option value="Entertainment">Entertainment</option>
+                            <option value="Others">Others</option>
+                        </select>
+                    </div>
+
+                    <button type="submit">Add</button>
+                </form>
+            </section>
+        </div>
+    </main>
+
+    <footer>
+        <p>&copy; 2025 FinFlow</p>
+    </footer>
+
+    <!-- JavaScript for dynamic subcategory toggle -->
+    <script>
+        function toggleSubcategories() {
+            const category = document.getElementById('category').value;
+            const subWrapper = document.getElementById('subcategory-wrapper');
+            subWrapper.style.display = category === 'Expense' ? 'block' : 'none';
+        }
+    </script>
+</body>
+</html>

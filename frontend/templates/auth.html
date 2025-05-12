@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Finflow | Login / SignUp</title>
+    
+    <!-- Correct way to load CSS in Flask -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    <script>
+        function toggleAuthForm(formType) {
+            if (formType === 'login') {
+                document.getElementById('login-form').style.display = 'block';
+                document.getElementById('signup-form').style.display = 'none';
+            } else {
+                document.getElementById('signup-form').style.display = 'block';
+                document.getElementById('login-form').style.display = 'none';
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <header>
+        <nav>
+            <h1>Finflow</h1>
+        </nav>
+    </header>
+
+    <div class="auth-page">
+        <div class="auth-container">
+
+            <!-- Flash Messages Block -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <ul class="flash-messages">
+                        {% for category, message in messages %}
+                            <li class="flash-message {{ category }}">{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
+
+            <!-- Login Form -->
+            <div id="login-form">
+                <h2>Login</h2>
+                <form action="{{ url_for('login') }}" method="POST">
+                    <input type="email" name="email" placeholder="Email" required>
+                    <input type="password" name="password" placeholder="Password" required>
+                    <button type="submit">Login</button>
+                </form>
+                <p>Don't have an account? <a href="javascript:void(0);" onclick="toggleAuthForm('signup')">Sign up</a></p>
+            </div>
+
+            <!-- Signup Form -->
+            <div id="signup-form" style="display:none;">
+                <h2>Sign Up</h2>
+                <form action="{{ url_for('signup') }}" method="POST">
+                    <input type="text" name="first-name" placeholder="First Name" required>
+                    <input type="text" name="last-name" placeholder="Last Name" required>
+                    <input type="email" name="email" placeholder="Email" required>
+                    <input type="password" name="password" placeholder="Password" required>
+                    <select name="occupation" required>
+                        <option value="student">Student</option>
+                        <option value="professional">Professional</option>
+                        <option value="other">Other</option>
+                    </select>
+                    <button type="submit">Sign Up</button>
+                </form>
+                <p>Already have an account? <a href="javascript:void(0);" onclick="toggleAuthForm('login')">Login</a></p>
+            </div>
+
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Finflow. All rights reserved.</p>
+    </footer>
+</body>
+
+</html>
