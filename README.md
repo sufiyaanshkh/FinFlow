@@ -52,25 +52,4 @@ It helps users **track expenses, get AI-powered insights, and receive smart fina
 git clone https://github.com/sufiyaanshkh/FinFlow.git
 cd FinFlow
 
-### 2. Create Virtual Environment
-```bash
-python3 -m venv venv
-source venv/bin/activate   # Mac/Linux
-venv\Scripts\activate      # Windows
-
-### 3. Install Dependencies
-```bash
-pip install -r requirements.txt
-
-### 4. Add Environment Variables
-```bash
-SECRET_KEY=your_secret_key
-OPENAI_API_KEY=your_openai_api_key
-
-### 5. Run the App
-```bash
-cd backend
-python app.py
-
-
 
