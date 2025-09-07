@@ -1,103 +1,102 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | FinFlow</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FinFlow — Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
 </head>
 <body>
-    <header>
-        <nav>
-            <h1 id="title1">FinFlow</h1>
-        </nav>
-        <nav class="sidebar">
-            <a href="{{ url_for('index') }}">🏠 Dashboard</a>
-            <a href="{{ url_for('analytics') }}">📊 Analytics</a>   
-            <a href="{{ url_for('all_transactions') }}">📜 View All Transactions</a>
-            <a href="{{ url_for('logout') }}">🚪 Logout</a>
-            <div class="user-greeting">
-                👋 Welcome, <strong>{{ first_name }}</strong>
-            </div>
-        </nav>        
+  <div class="container">
+    <header class="header">
+      <h1>Welcome, {{ first_name }} 👋</h1>
+      <nav>
+        <a href="{{ url_for('index') }}">Home</a>
+        <a href="{{ url_for('analytics') }}">Analytics</a>
+        <a href="{{ url_for('all_transactions') }}">All Transactions</a>
+        <a href="{{ url_for('chat_page') }}">AI Chat</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+      </nav>
     </header>
 
-    <main>
-        <div class="container">
-            <!-- Summary Section -->
-            <section class="summary-section">
-                <div class="summary-card">
-                    <h2>Total Income</h2>
-                    <p>₹{{ total_income }}</p>
-                </div>
-                <div class="summary-card">
-                    <h2>Total Expenses</h2>
-                    <p>₹{{ total_expenses }}</p>
-                </div>
-                <div class="summary-card">
-                    <h2>Net Balance</h2>
-                    <p>₹{{ net_balance }}</p>
-                </div>
-            </section>
-
-            <!-- Recent Transactions Section -->
-            <a href="{{ url_for('all_transactions') }}" class="view-all-button">View All Transactions</a>
-
-            <section class="transactions">
-                <h2>Recent Transactions</h2>
-                <ul>
-                    {% for transaction in transactions %}
-                        <li>
-                            <p>{{ transaction[2] }}: ₹{{ transaction[3] }} ({{ transaction[4] }})</p>
-                        </li>
-                    {% endfor %}
-                </ul>
-            </section>
-
-            <!-- Add Transaction Section -->
-            <section class="transaction-form">
-                <h2>Add Transaction</h2>
-                <form action="{{ url_for('add_transaction') }}" method="POST">
-                    <input type="text" name="description" placeholder="Description" required>
-                    <input type="number" name="amount" placeholder="Amount" required>
-
-                    <label for="category">Type:</label>
-                    <select id="category" name="category" onchange="toggleSubcategories()" required>
-                        <option value="">-- Select --</option>
-                        <option value="Income">Income</option>
-                        <option value="Expense">Expense</option>
-                    </select>
-
-                    <div id="subcategory-wrapper" style="display: none;">
-                        <label for="subcategory">Subcategory:</label>
-                        <select name="subcategory" id="subcategory">
-                            <option value="Food">Food</option>
-                            <option value="Travel">Travel</option>
-                            <option value="Staying">Staying</option>
-                            <option value="Shopping">Shopping</option>
-                            <option value="Bills">Bills</option>
-                            <option value="Entertainment">Entertainment</option>
-                            <option value="Others">Others</option>
-                        </select>
-                    </div>
-
-                    <button type="submit">Add</button>
-                </form>
-            </section>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-list">
+          {% for category, message in messages %}
+            <div class="flash {{ category }}">{{ message }}</div>
+          {% endfor %}
         </div>
-    </main>
+      {% endif %}
+    {% endwith %}
 
-    <footer>
-        <p>&copy; 2025 FinFlow</p>
-    </footer>
+    <section class="grid three">
+      <div class="card"><h3>Total Income</h3><p class="big">₹{{ '%.2f'|format(total_income) }}</p></div>
+      <div class="card"><h3>Total Expenses</h3><p class="big danger">₹{{ '%.2f'|format(total_expenses) }}</p></div>
+      <div class="card"><h3>Net Balance</h3><p class="big {{ 'danger' if net_balance < 0 else '' }}">₹{{ '%.2f'|format(net_balance) }}</p></div>
+    </section>
 
-    <!-- JavaScript for dynamic subcategory toggle -->
-    <script>
-        function toggleSubcategories() {
-            const category = document.getElementById('category').value;
-            const subWrapper = document.getElementById('subcategory-wrapper');
-            subWrapper.style.display = category === 'Expense' ? 'block' : 'none';
-        }
-    </script>
+    <section class="grid two">
+      <div class="card">
+        <h3>Quick Add</h3>
+        <form method="POST" action="{{ url_for('add_transaction') }}" class="row">
+          <input type="text" name="description" placeholder="Description" required />
+          <input type="number" step="0.01" name="amount" placeholder="Amount" required />
+          <select name="category">
+            <option>Expense</option>
+            <option>Income</option>
+          </select>
+          <input type="text" name="subcategory" placeholder="Subcategory (for Expense)" />
+          <button class="btn">Add</button>
+        </form>
+      </div>
+
+      <div class="card">
+        <h3>Predictive Alerts</h3>
+        {% if cashflow.warning %}
+          <div class="alert danger">
+            ⚠️ Cash flow risk: projected balance ₹{{ '%.2f'|format(cashflow.projected_balance) }} before next salary (ETA {{ cashflow.next_salary_eta.strftime('%Y-%m-%d') }}).
+          </div>
+        {% else %}
+          <div class="alert ok">✅ Cash flow looks okay until your next salary (ETA {{ cashflow.next_salary_eta.strftime('%Y-%m-%d') }}).</div>
+        {% endif %}
+        {% if recurring %}
+          <ul class="list">
+            {% for r in recurring %}
+              <li>🔁 {{ r.description }} — ~₹{{ '%.2f'|format(r.avg_amount) }} • next around {{ r.next_eta.strftime('%Y-%m-%d') }}</li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <p>No recurring bills identified yet.</p>
+        {% endif %}
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>Recent Transactions</h3>
+      <table>
+        <thead><tr><th>Date</th><th>Description</th><th>Category</th><th>Subcategory</th><th>Amount</th></tr></thead>
+        <tbody>
+          {% for t in transactions %}
+          <tr>
+            <td>{{ t[5].strftime('%Y-%m-%d %H:%M') }}</td>
+            <td>{{ t[1] }}</td>
+            <td>{{ t[3] }}</td>
+            <td>{{ t[4] or '-' }}</td>
+            <td class="{{ 'danger' if t[3]=='Expense' else 'ok' }}">₹{{ '%.2f'|format(t[2]) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    {% if advice_msgs %}
+    <section class="card">
+      <h3>AI Advice</h3>
+      <ul class="list">
+        {% for m in advice_msgs %}<li>💡 {{ m }}</li>{% endfor %}
+      </ul>
+    </section>
+    {% endif %}
+  </div>
 </body>
 </html>

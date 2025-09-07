@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AI Chat — FinFlow</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1>AI Chat Assistant</h1>
+      <nav>
+        <a href="{{ url_for('index') }}">Home</a>
+        <a href="{{ url_for('analytics') }}">Analytics</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+      </nav>
+    </header>
+
+    <div class="card">
+      <p>Try asking:</p>
+      <ul class="list">
+        <li>How much did I spend on food last month?</li>
+        <li>Show me my top 3 categories this week.</li>
+        <li>Give me spending advice.</li>
+      </ul>
+      <div id="chat-box" class="chat-box"></div>
+      <div class="row">
+        <input id="msg" type="text" placeholder="Type your question..." />
+        <button class="btn" onclick="sendMsg()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const chatBox = document.getElementById('chat-box');
+    const msg = document.getElementById('msg');
+
+    function addBubble(text, who){
+      const div = document.createElement('div');
+      div.className = who === 'you' ? 'bubble you' : 'bubble bot';
+      div.textContent = text;
+      chatBox.appendChild(div);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    async function sendMsg(){
+      const text = msg.value.trim();
+      if(!text) return;
+      addBubble(text, 'you');
+      msg.value='';
+      const res = await fetch('/api/chat', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({message: text}) });
+      const data = await res.json();
+      addBubble(data.response, 'bot');
+    }
+  </script>
+</body>
+</html>

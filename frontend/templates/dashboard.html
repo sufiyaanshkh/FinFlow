@@ -3,90 +3,81 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Analytics Dashboard</title>
+  <title>Analytics Dashboard — FinFlow</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
 </head>
 <body>
   <div class="container">
-    <h1>Analytics Dashboard</h1>
+    <header class="header">
+      <h1>Analytics</h1>
+      <nav>
+        <a href="{{ url_for('index') }}">Home</a>
+        <a href="{{ url_for('all_transactions') }}">All Transactions</a>
+        <a href="{{ url_for('chat_page') }}">AI Chat</a>
+        <a href="{{ url_for('logout') }}">Logout</a>
+      </nav>
+    </header>
 
-    <!-- Category Bar Chart -->
-    <h2>Category-wise Spending</h2>
-    <canvas id="categoryBarChart" width="400" height="200"></canvas>
+    <section class="grid two">
+      <div class="card">
+        <h3>Category-wise Totals</h3>
+        <div class="chart-wrap"><canvas id="categoryBarChart"></canvas></div>
+      </div>
+      <div class="card">
+        <h3>Expense Breakdown (Subcategories)</h3>
+        <div class="chart-wrap"><canvas id="subcategoryPieChart"></canvas></div>
+      </div>
+    </section>
 
-    <!-- Subcategory Pie Chart -->
-    <h2>Subcategory-wise Expense</h2>
-    <div style="max-width: 300px; margin: auto;">
-      <canvas id="subcategoryPieChart" width="300" height="300"></canvas>
+    <section class="grid two">
+      <div class="card">
+        <h3>Weekend vs Weekday Spend</h3>
+        <p>Weekend: <strong>₹{{ '%.2f'|format(weekend_spend) }}</strong></p>
+        <p>Weekday: <strong>₹{{ '%.2f'|format(weekday_spend) }}</strong></p>
+      </div>
+      <div class="card">
+        <h3>Forecast (Next Month)</h3>
+        <p>Projected total expenses next month: <strong>₹{{ '%.2f'|format(next_month_forecast) }}</strong></p>
+        <small>(Based on the average of the last 3 months)</small>
+      </div>
+    </section>
+
+    <div class="row gap">
+      <button class="btn" onclick="downloadChart('categoryBarChart', 'category.png')">Download Category Chart</button>
+      <button class="btn" onclick="downloadChart('subcategoryPieChart', 'subcategory.png')">Download Subcategory Chart</button>
     </div>
-
-    <a href="{{ url_for('index') }}">Back to Home</a>
   </div>
 
   <script>
-    // Category data from Flask
     const categories = {{ categories | tojson }};
     const amounts = {{ amounts | tojson }};
-
-    // Subcategory data from Flask
     const subcategories = {{ subcategories | tojson }};
     const subAmounts = {{ sub_amounts | tojson }};
 
-    // Bar chart for category totals
     const barCtx = document.getElementById('categoryBarChart').getContext('2d');
     new Chart(barCtx, {
       type: 'bar',
-      data: {
-        labels: categories,
-        datasets: [{
-          label: 'Amount',
-          data: amounts,
-          backgroundColor: '#36a2eb',
-          borderColor: '#2980b9',
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: {
-            beginAtZero: true
-          }
-        }
-      }
+      data: { labels: categories, datasets: [{ label: 'Amount', data: amounts, borderWidth: 1 }] },
+      options: { responsive: true, plugins: { datalabels: { anchor: 'end', align: 'top' } }, scales: { y: { beginAtZero: true } } }
     });
 
-    // Pie chart for subcategory expenses
+    const colors = subcategories.map((_,i)=> `hsl(${(i*37)%360}, 70%, 60%)`);
     const pieCtx = document.getElementById('subcategoryPieChart').getContext('2d');
     new Chart(pieCtx, {
       type: 'pie',
-      data: {
-        labels: subcategories,
-        datasets: [{
-          label: 'Expenses',
-          data: subAmounts,
-          backgroundColor: [
-            '#ff6384', '#36a2eb', '#ffce56',
-            '#8e44ad', '#2ecc71', '#e74c3c',
-            '#3498db', '#f1c40f', '#1abc9c'
-          ],
-          borderWidth: 1
-        }]
-      },
-      options: {
-        responsive: false,
-        plugins: {
-          legend: {
-            position: 'bottom'
-          },
-          title: {
-            display: true,
-            text: 'Subcategory-wise Expense Breakdown'
-          }
-        }
-      }
+      data: { labels: subcategories, datasets: [{ data: subAmounts, backgroundColor: colors }] },
+      options: { responsive: true, plugins: { legend: { position: 'bottom' }, title: { display: true, text: 'Expense Breakdown' } } }
     });
+
+    function downloadChart(id, filename){
+      const canvas = document.getElementById(id);
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = filename;
+      link.click();
+    }
   </script>
 </body>
 </html>
